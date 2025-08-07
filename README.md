@@ -106,18 +106,30 @@ kubeflow-istio-resources
 ```shell
 git clone -b v1.10.2 https://github.com/kubeflow/manifests.git
 cd manifests
+kustomize build common/cert-manager/base | kubectl apply -f - 
+kustomize build common/cert-manager/kubeflow-issuer/base | kubectl apply -f -
+
+kustomize build common/istio/istio-crds/base | kubectl apply -f -
+kustomize build common/istio/istio-namespace/base | kubectl apply -f -
+kustomize build common/istio/istio-install/base | kubectl apply -f -
+kustomize build common/istio/istio-install/overlays/oauth2-proxy \
+  | kubectl apply -f -
 
 kustomize build common/dex/overlays/istio | kubectl apply -f -
 
 kustomize build common/oauth2-proxy/base | kubectl apply -f -
 
 kustomize build common/kubeflow-namespace/base | kubectl apply -f -
-
 kustomize build common/kubeflow-roles/base | kubectl apply -f -
 
 kustomize build common/istio/kubeflow-istio-resources/base | kubectl apply -f - 
 
 kustomize build applications/pipeline/upstream/env/cert-manager/platform-agnostic-multi-user | kubectl apply -f -
+
+kustomize build applications/katib/upstream/installs/katib-with-kubeflow | kubectl apply -f -
+
+kustomize build applications/centraldashboard/upstream/overlays/istio | kubectl apply -f -
+
 
 #pod 생성 안되는 이슈
 kubectl label namespace kubeflow pod-security.kubernetes.io/enforce=privileged --overwrite
@@ -137,8 +149,19 @@ kustomize build applications/volumes-web-app/upstream/overlays/istio | kubectl a
 kustomize build applications/tensorboard/tensorboards-web-app/upstream/overlays/istio | kubectl apply -f -
 kustomize build applications/tensorboard/tensorboard-controller/upstream/overlays/kubeflow | kubectl apply -f -
 
+kustomize build applications/training-operator/upstream/overlays/kubeflow | kubectl apply -f - 
+
 kustomize build common/user-namespace/base | kubectl apply -f -
+
+kustomize build common/oauth2-proxy/overlays/m2m-dex-only \
+  | kubectl apply -f -
 ```
+# kubeflow dashboard ui
+kubeflow dashboard ui를 위한 포트포워딩
+```shell
+ kubectl -n istio-system port-forward svc/istio-ingressgateway 8080:80
+ #이후 localhost:8080접속
+ ```
 
 # 수행
 ```shell
